@@ -1,4 +1,6 @@
 import tkinter as tk
+from tkinter import messagebox
+import database
 
 class Application():
 
@@ -13,6 +15,72 @@ class Application():
 		self.date = tk.StringVar()
 		self.time = tk.StringVar()
 		self.amount = tk.StringVar()
+
+		#Actions for Buttons.....
+		def exitAction():
+			exitdisp = messagebox.askyesno("Money Database Management System", "Are you sure you want to exit!")
+			if exitdisp > 0:
+				root.destroy()
+			return
+
+		def clearData():
+			self.name_input.delete(0,"end")
+			self.address_input.delete(0,"end")
+			self.mobile_input.delete(0,"end")
+			self.date_input.delete(0,"end")
+			self.time_input.delete(0,"end")
+			self.amount_input.delete(0,"end")
+
+		def addPerson():
+			name = self.name_input.get()
+			address = self.address_input.get()
+			mobile_no = self.mobile_input.get()
+			date = self.date_input.get()
+			time = self.time_input.get()
+			amount = self.amount.get()
+			self.person_list.delete(0,"end")
+			status = database.addData(name,address,mobile_no,date,time,amount)
+			if status:
+				self.person_list.insert("end",(name,address,mobile_no,date,time,amount))
+			else:
+				self.person_list.insert("end","Not Added Something went wrong!!!")
+
+		def personRec(event):
+			global pd
+			search_person = self.person_list.curselection()[0]
+			pd = self.person_list.get(search_person)
+
+			clearData()
+			self.name_input.insert("end",pd[1])
+			self.address_input.insert("end",pd[2])
+			self.mobile_input.insert("end",pd[3])
+			self.date_input.insert("end",pd[4])
+			self.time_input.insert("end",pd[5])
+			self.amount_input.insert("end",pd[6])
+
+
+
+		def deletePerson():
+			database.deleteData(pd[0])
+			clearData()
+			displayAll()
+
+		def searchPerson():
+			name = self.name_input.get()
+			address = self.address_input.get()
+			mobile_no = self.mobile_input.get()
+			date = self.date_input.get()
+			time = self.time_input.get()
+			amount = self.amount.get()
+			clearData()
+			self.person_list.delete(0,"end")
+			for row in database.searchData(name, address, mobile_no, date, time, amount):
+				self.person_list.insert("end", row, str("\n"))
+
+		def displayAll():
+			self.person_list.delete(0,"end")
+			for row in database.displayData():
+				self.person_list.insert("end",row,str("\n"))
 
 		#Main Frame
 		self.main_frame = tk.Frame(root, bg="cadet blue")
@@ -75,8 +143,30 @@ class Application():
 		self.scrollbar.grid(row=0, column=1, sticky="ns")
 
 		self.person_list = tk.Listbox(self.right_data_frame, width=41, height=16, font=('arial',12,'bold'), yscrollcommand=self.scrollbar.set)
+		self.person_list.bind("<<ListboxSelect>>", personRec)
 		self.person_list.grid(row=0,column=0,padx=8)
 		self.scrollbar.config(command=self.person_list.yview)
+
+		#Buttons for interacting...
+		self.addbtn = tk.Button(self.button_frame, text="Add New", font=('arial',20,'bold'), height=1, width=10, bd=4, command=addPerson)
+		self.addbtn.grid(row=0, column=0)
+
+		self.displaybtn = tk.Button(self.button_frame, text="Display", font=('arial',20,'bold'), height=1, width=10, bd=4, command=displayAll)
+		self.displaybtn.grid(row=0, column=1)
+
+		self.clearbtn = tk.Button(self.button_frame, text="Clear", font=('arial',20,'bold'), height=1, width=10, bd=4, command=clearData)
+		self.clearbtn.grid(row=0, column=2)
+
+		self.deletebtn = tk.Button(self.button_frame, text="Delete", font=('arial',20,'bold'), height=1, width=10, bd=4, command=deletePerson)
+		self.deletebtn.grid(row=0, column=3)
+
+		self.searchbtn = tk.Button(self.button_frame, text="Search", font=('arial',20,'bold'), height=1, width=10, bd=4, command=searchPerson)
+		self.searchbtn.grid(row=0, column=4)
+
+		self.exitbtn = tk.Button(self.button_frame, text="Exit", font=('arial',20,'bold'), height=1, width=10, bd=4, command=exitAction)
+		self.exitbtn.grid(row=0, column=5)
+
+
 
 
 
